@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates.
+ * Copyright 2019 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,10 @@ import org.kie.server.router.Configuration;
 import org.kie.server.router.KieServerRouter;
 import org.kie.server.router.KieServerRouterConstants;
 
-public class KieServerRouterAuthTest {
+public class KieServerRouterFileAuthTest {
+
+    private static final String KIE_SERVER_ID = "server-id";
+    private static final String KIE_SERVER_PASSWORD = "pwd";
 
     private static KieServerRouter router;
     private static File repository;
@@ -39,19 +42,15 @@ public class KieServerRouterAuthTest {
     private static String serverUrl;
 
     @BeforeClass
-    public static void startStandaloneRouter(){
-        if (router != null) {
-            router.stop(true);
-            router = null;
-        }
-
+    public static void startStandaloneRouter() throws Exception{
         // setup repository for config of router
         repository = new File("target/standalone-router-repo");
         repository.mkdirs();
         System.setProperty(KieServerRouterConstants.ROUTER_REPOSITORY_DIR, repository.getAbsolutePath());
         System.setProperty(KieServerRouterConstants.KIE_ROUTER_MANAGEMENT_SECURED, "true");
-        System.setProperty(KieServerRouterConstants.KIE_ROUTER_IDENTITY_PROVIDER, "mock");
 
+        // Add Kie server id and password for authentication
+        KieServerRouter.main(new String[]{"-addInstance", KIE_SERVER_ID, KIE_SERVER_PASSWORD});
 
         // setup and start router
         Integer port = allocatePort();
@@ -66,7 +65,6 @@ public class KieServerRouterAuthTest {
         // stop router and remove its config
         System.clearProperty(KieServerRouterConstants.ROUTER_REPOSITORY_DIR);
         System.clearProperty(KieServerRouterConstants.KIE_ROUTER_MANAGEMENT_SECURED);
-        System.clearProperty(KieServerRouterConstants.KIE_ROUTER_IDENTITY_PROVIDER);
         router.stop(true);
         router = null;
 
@@ -75,24 +73,22 @@ public class KieServerRouterAuthTest {
     }
 
     @Test
-    public void testValidAuthMgmtKieServerRouter() throws Exception {
-        try (KieServerRouterClient routerClient = new KieServerRouterClient(serverUrl)) {
-            routerClient.setCredentials("mockUser", "mockPassword");
-            Configuration configuration = routerClient.getRouterConfig();
-            Assert.assertNotNull(configuration);
-        }
+    public void testValidAuthMgmtKieServerRouter() {
+        Assert.assertNotNull(getRouterConfig(KIE_SERVER_ID, KIE_SERVER_PASSWORD));
     }
 
     @Test
-    public void testInvalidAuthMgmtKieServerRouter() throws Exception {
-        Assertions.assertThatExceptionOfType(KieServerControllerHTTPClientException.class).isThrownBy(
-                              () -> {
-                                  try (KieServerRouterClient routerClient = new KieServerRouterClient(serverUrl)) {
-                                      routerClient.setCredentials("invalidUser", "mockPassword");
-                                      Configuration configuration = routerClient.getRouterConfig();
-                                  }
-                              }
-        );
+    public void testInvalidAuthMgmtKieServerRouter() {
+        Assertions.assertThatExceptionOfType(KieServerControllerHTTPClientException.class).isThrownBy(() -> getRouterConfig("invalidUser", KIE_SERVER_PASSWORD));
+        Assertions.assertThatExceptionOfType(KieServerControllerHTTPClientException.class).isThrownBy(() -> getRouterConfig(KIE_SERVER_ID, "invalidPassword"));
+        Assertions.assertThatExceptionOfType(KieServerControllerHTTPClientException.class).isThrownBy(() -> getRouterConfig("invalidUser", "invalidPassword"));
+    }
+
+    private Configuration getRouterConfig(String username, String password) {
+        try (KieServerRouterClient routerClient = new KieServerRouterClient(serverUrl)) {
+            routerClient.setCredentials(username, password);
+            return routerClient.getRouterConfig();
+        }
     }
 
     private static int allocatePort() {

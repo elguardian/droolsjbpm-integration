@@ -63,10 +63,10 @@ public class FileStoredIdentityManager implements IdentityService {
         KieServerInstanceAccount account = getAccount(id);
         String challenge = HashUtil.hash(id, new String(passwordCredential.getPassword()));
         if (account != null && challenge.equals(account.getHash())) {
-            log.infof("Authentication succesfully for %1$2", id);
+            log.infof("Authentication succesfully for %1$s", id);
             return account;
         }
-        log.infof("Authentication failed for %1$2", id);
+        log.infof("Authentication failed for %1$s", id);
         return null;
     }
 
@@ -106,8 +106,6 @@ public class FileStoredIdentityManager implements IdentityService {
     private void saveKieServerInstanceData(Properties data) {
         try (OutputStream out = new FileOutputStream(userFile)) {
             data.store(out, "Kie Server Router");
-        } catch (FileNotFoundException e) {
-            log.infof("file not found %1$s", userFile);
         } catch (IOException e) {
             log.errorf(e, "somo error ocurred during access to %1$s", userFile);
         }
