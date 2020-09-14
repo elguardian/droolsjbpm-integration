@@ -36,6 +36,7 @@ import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.feature.Feature;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.spring.AbstractJaxrsClassesScanServer;
+import org.appformer.maven.integration.embedder.MavenProjectLoader;
 import org.appformer.maven.support.AFReleaseId;
 import org.appformer.maven.support.MinimalPomParser;
 import org.appformer.maven.support.PomModel;
@@ -117,6 +118,8 @@ public class KieServerAutoConfiguration extends AbstractJaxrsClassesScanServer {
         }
         logger.info("KieServer (id {} (name {})) started initialization process", KieServerEnvironment.getServerId(), KieServerEnvironment.getServerName());
         if (properties.isClassPathContainer()) {
+            // we force maven resolution as offline
+            System.setProperty(MavenProjectLoader.FORCE_OFFLINE, "true"); 
             kieServer = new ImmutableSpringBootKieServerImpl(extensions, identityProvider, containers);
         } else {
             kieServer = new SpringBootKieServerImpl(extensions, identityProvider);
