@@ -16,6 +16,7 @@
 package org.kie.server.controller.impl;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
@@ -61,6 +62,10 @@ public class KieServerInstanceManager {
 
     public static KieServerInstanceManager getInstance() {
         return INSTANCE;
+    }
+
+    public boolean isAsync() {
+        return false;
     }
 
     public List<Container> startScanner(ServerTemplate serverTemplate,

@@ -1148,6 +1148,7 @@ public class KieServerImpl implements KieServer {
         getDefaultController().update(getInternalServerState());
     }
 
+
     protected KieServerController getDefaultController() {
         return new DefaultRestControllerImpl(context);
     }

@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 
 import org.kie.server.api.KieServerConstants;
 import org.kie.server.api.model.KieContainerResource;
-import org.kie.server.api.model.KieContainerStatus;
 import org.kie.server.api.model.KieScannerResource;
 import org.kie.server.api.model.KieServerConfig;
 import org.kie.server.api.model.KieServerConfigItem;
@@ -190,11 +189,7 @@ public abstract class KieServerControllerImpl implements KieServerController {
     private ServerInstance toServerInstance(ServerInstanceKey serverInstanceKey, ServerTemplate serverTemplate) {
         // we update the server instance with the containers
         List<Container> containerList = new ArrayList<Container>();
-        List<KieContainerStatus> invalidStatus = Collections.singletonList(KieContainerStatus.STOPPED);
         for(ContainerSpec containerSpec : serverTemplate.getContainersSpec()) {
-            if(invalidStatus.contains(containerSpec.getStatus())) {
-                continue;
-            }
             Container container = new Container(containerSpec.getId(),
                           containerSpec.getContainerName(),
                           serverInstanceKey,
